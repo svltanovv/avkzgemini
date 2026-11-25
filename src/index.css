@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: "Lora", Georgia, Cambria, serif;
+
+  --color-obsidian: #141816;
+  --color-pine: #1B332A;
+  --color-pine-light: #26473B;
+  --color-champagne: #B8955A;
+  --color-champagne-light: #D5B883;
+  --color-alabaster: #F6F4EF;
+  --color-limestone: #ECE8DF;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--color-alabaster);
+    color: #171A18;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Refined custom range slider */
+input[type="range"].av-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 9999px;
+  background: #D8D3C8;
+  outline: none;
+}
+
+input[type="range"].av-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #1B332A;
+  border: 2px solid #F6F4EF;
+  box-shadow: 0 2px 8px rgba(20, 24, 22, 0.25);
+  cursor: pointer;
+  transition: transform 150ms ease, background-color 150ms ease;
+}
+
+input[type="range"].av-range::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  background: #B8955A;
+}
+
+input[type="range"].av-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #1B332A;
+  border: 2px solid #F6F4EF;
+  box-shadow: 0 2px 8px rgba(20, 24, 22, 0.25);
+  cursor: pointer;
+}
