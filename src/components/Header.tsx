@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Menu, Phone, X } from 'lucide-react'
 import type { Translations } from '../i18n/translations'
 import { SALES_PHONE_DISPLAY, SALES_PHONE_RAW, type Lang } from '../utils/whatsapp'
+import logoWhiteHorizontal from '../assets/logos/av-logo-horizontal-white.svg'
 
 interface HeaderProps {
   lang: Lang
@@ -43,13 +44,18 @@ export function Header({ lang, onLangChange, t, onBookViewingClick }: HeaderProp
         <a
           href="#top"
           data-track="header_logo_click"
-          className="flex flex-col leading-none group shrink-0"
+          aria-label="Apple Village — QZNA Development"
+          className="flex items-center gap-3 group shrink-0"
         >
-          <span className="font-display text-lg sm:text-xl tracking-[0.14em] text-[#F6F4EF] font-medium group-hover:text-[#D5B883] transition-colors">
-            APPLE VILLAGE
-          </span>
-          <span className="text-[10px] tracking-[0.22em] uppercase text-[#C9A96E]/90 mt-1">
-            QZNA Development
+          <img
+            src={logoWhiteHorizontal}
+            alt="Apple Village"
+            className="h-9 sm:h-10 w-auto object-contain transition-opacity group-hover:opacity-90"
+          />
+          <span className="hidden xl:inline-block pl-3 border-l border-white/15 text-[10px] tracking-[0.2em] uppercase text-[#C9A96E]/90 leading-tight">
+            QZNA
+            <br />
+            Development
           </span>
         </a>
 

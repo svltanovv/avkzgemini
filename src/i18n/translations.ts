@@ -61,15 +61,18 @@ export interface Translations {
     statuses: Record<LotStatus, string>
     features: Record<LotFeatureKey, string>
     map: {
-      northLabel: string
-      kpp1: string
-      kpp2: string
-      westRow: string
-      eastRow: string
-      avenue: string
-      clubZone: string
-      clubZoneSub: string
-      alleyLabel: string
+      kuldzhinka: string
+      bakad: string
+      office: string
+      guard: string
+      guestParking: string
+      street: string
+      poolSaunas: string
+      sportPlayground: string
+      parkAlley: string
+      plotShort: string
+      scrollHint: string
+      quickAvailable: string
     }
     detail: {
       lotPrefix: string
@@ -318,15 +321,18 @@ export const translations: Record<Lang, Translations> = {
         cornerPlot: 'Приватный угловой участок',
       },
       map: {
-        northLabel: 'Въезд с Кульджинского тракта',
-        kpp1: 'КПП 1 · Кульджинский тракт',
-        kpp2: 'КПП 2 · Въезд в городок · Гостевая парковка',
-        westRow: 'Западная линия · Участки №1–20',
-        eastRow: 'Восточная линия · Участки №21–39',
-        avenue: 'Центральная асфальтированная аллея',
-        clubZone: 'Клубная зона',
-        clubZoneSub: 'Бассейн 200 м² · 2 бани · Зал · Детская площадка',
-        alleyLabel: 'Парк-аллея 700 м · Велодорожка и прогулочная зона',
+        kuldzhinka: 'Кульджинский тракт',
+        bakad: 'БАКАД →',
+        office: 'Офис продаж',
+        guard: 'Охрана (КПП)',
+        guestParking: 'Гостевой паркинг',
+        street: 'Центральная улица городка',
+        poolSaunas: 'Бассейн / сауны',
+        sportPlayground: 'Спорт / дет. площадка',
+        parkAlley: 'Прогулочная Парк-Аллея · 700 м',
+        plotShort: 'уч.',
+        scrollHint: 'Листайте план по горизонтали, чтобы увидеть все 39 участков',
+        quickAvailable: 'Свободные коттеджи:',
       },
       detail: {
         lotPrefix: 'Коттедж №',
@@ -642,15 +648,18 @@ export const translations: Record<Lang, Translations> = {
         cornerPlot: 'Жеке бұрыштық учаске',
       },
       map: {
-        northLabel: 'Құлжа тас жолынан кіру',
-        kpp1: 'БӨП 1 · Құлжа тас жолы',
-        kpp2: 'БӨП 2 · Қалашыққа кіру · Қонақ тұрағы',
-        westRow: 'Батыс желісі · №1–20 учаскелер',
-        eastRow: 'Шығыс желісі · №21–39 учаскелер',
-        avenue: 'Орталық асфальтталған аллея',
-        clubZone: 'Клубтық аймақ',
-        clubZoneSub: '200 м² бассейн · 2 монша · Зал · Балалар алаңы',
-        alleyLabel: '700 м саябақ-аллея · Веложол және серуен аймағы',
+        kuldzhinka: 'Құлжа тас жолы',
+        bakad: 'ҮАААЖ / BAKAD →',
+        office: 'Сату кеңсесі',
+        guard: 'Күзет (БӨП)',
+        guestParking: 'Қонақ тұрағы',
+        street: 'Қалашықтың орталық көшесі',
+        poolSaunas: 'Бассейн / монша',
+        sportPlayground: 'Спорт / балалар алаңы',
+        parkAlley: 'Серуендеу саябақ-аллеясы · 700 м',
+        plotShort: 'уч.',
+        scrollHint: 'Барлық 39 учаскені көру үшін жоспарды көлденең жылжытыңыз',
+        quickAvailable: 'Бос коттедждер:',
       },
       detail: {
         lotPrefix: 'Коттедж №',

@@ -13,7 +13,8 @@ export type LotFeatureKey =
 export interface Lot {
   id: string
   number: number
-  row: 'west' | 'east'
+  plotNumber: number
+  row: 'north' | 'south'
   position: number
   status: LotStatus
   landAreaSotok: number
@@ -32,9 +33,10 @@ export interface Lot {
  * Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Netlify Environment Variables.
  * Expected table schema in Supabase (`public.lots`):
  *   id text primary key (e.g. 'AV-01')
- *   number int not null
- *   row text not null check (row in ('west', 'east'))
- *   position int not null
+ *   number int not null (house number 1..39)
+ *   plot_number int not null (cadastral plot number 2..42)
+ *   row text not null check (row in ('north', 'south'))
+ *   position int not null (1..21 horizontal grid slot)
  *   status text not null check (status in ('available', 'reserved', 'sold'))
  *   land_area_sotok numeric default 6
  *   house_area_total numeric default 169
@@ -65,7 +67,8 @@ export async function fetchLots(): Promise<{ lots: Lot[]; source: 'supabase' | '
           const mapped: Lot[] = rows.map((r) => ({
             id: String(r.id),
             number: Number(r.number),
-            row: r.row === 'east' ? 'east' : 'west',
+            plotNumber: Number(r.plot_number ?? Number(r.number) + 1),
+            row: r.row === 'south' ? 'south' : 'north',
             position: Number(r.position),
             status: (r.status === 'sold' || r.status === 'reserved' ? r.status : 'available') as LotStatus,
             landAreaSotok: Number(r.land_area_sotok ?? 6),

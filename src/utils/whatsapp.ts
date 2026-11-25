@@ -24,11 +24,17 @@ export function buildWhatsAppUrl(customText?: string, lang: Lang = 'ru'): string
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(ensuredText)}`
 }
 
-export function buildLotWhatsAppUrl(lotNumber: number, lotId: string, lang: Lang = 'ru'): string {
+export function buildLotWhatsAppUrl(
+  lotNumber: number,
+  lotId: string,
+  lang: Lang = 'ru',
+  plotNumber?: number,
+): string {
+  const plotSuffix = plotNumber ? (lang === 'kz' ? `, уч. ${plotNumber}` : `, уч. ${plotNumber}`) : ''
   const text =
     lang === 'kz'
-      ? `Сәлеметсіз бе! Apple Village коттедж қалашығындағы №${lotNumber} (${lotId}) учаскесінің бағасы мен шарттары қызықтырады.`
-      : `Здравствуйте! Интересует коттедж №${lotNumber} (${lotId}) в КГ Apple Village. Подскажите, пожалуйста, актуальную стоимость и условия.`
+      ? `Сәлеметсіз бе! Apple Village коттедж қалашығындағы №${lotNumber}${plotSuffix} (${lotId}) үйінің бағасы мен шарттары қызықтырады.`
+      : `Здравствуйте! Интересует коттедж №${lotNumber}${plotSuffix} (${lotId}) в КГ Apple Village. Подскажите, пожалуйста, актуальную стоимость и условия.`
   return buildWhatsAppUrl(text, lang)
 }
 

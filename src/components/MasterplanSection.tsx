@@ -1,8 +1,23 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Calendar, CheckCircle2, Compass, Home, MapPin, MessageCircle, Waves } from 'lucide-react'
+import {
+  Building2,
+  Calendar,
+  Car,
+  CheckCircle2,
+  Compass,
+  Dumbbell,
+  Home,
+  MapPin,
+  MessageCircle,
+  MoveHorizontal,
+  Shield,
+  Trees,
+  Waves,
+} from 'lucide-react'
 import type { Translations } from '../i18n/translations'
 import { fetchLots, type Lot, type LotStatus } from '../services/lotsService'
 import { buildLotWhatsAppUrl, type Lang } from '../utils/whatsapp'
+import logoBlackHorizontal from '../assets/logos/av-logo-horizontal-black.svg'
 
 interface MasterplanSectionProps {
   lang: Lang
@@ -15,22 +30,25 @@ const STATUS_STYLE: Record<
   { tile: string; selectedTile: string; badge: string; dot: string }
 > = {
   available: {
-    tile: 'bg-[#E6F1EB] border-[#1B332A]/35 text-[#172821] hover:bg-[#1B332A] hover:text-[#F6F4EF] hover:border-[#1B332A]',
-    selectedTile: 'bg-[#1B332A] border-[#C9A96E] text-[#F6F4EF] ring-2 ring-[#C9A96E] shadow-md',
+    tile: 'bg-[#1B332A] border-[#14261F] text-[#F6F4EF] hover:bg-[#26473B] hover:border-[#C9A96E]',
+    selectedTile:
+      'bg-[#1B332A] border-[#C9A96E] text-[#F6F4EF] ring-2 ring-[#C9A96E] ring-offset-1 ring-offset-[#FBF9F5] shadow-lg scale-[1.04] z-10',
     badge: 'bg-[#E6F1EB] text-[#1B332A] border-[#1B332A]/25',
     dot: 'bg-[#1B332A]',
   },
   reserved: {
-    tile: 'bg-[#F6EEDB] border-[#B8955A]/45 text-[#6F5323] hover:bg-[#B8955A] hover:text-white',
-    selectedTile: 'bg-[#B8955A] border-[#141816] text-white ring-2 ring-[#141816]/30 shadow-md',
+    tile: 'bg-[#C9A96E] border-[#A7874D] text-[#141816] hover:bg-[#D5B883]',
+    selectedTile:
+      'bg-[#B8955A] border-[#141816] text-white ring-2 ring-[#141816] ring-offset-1 ring-offset-[#FBF9F5] shadow-lg scale-[1.04] z-10',
     badge: 'bg-[#F6EEDB] text-[#7D5E26] border-[#B8955A]/40',
-    dot: 'bg-[#B8955A]',
+    dot: 'bg-[#C9A96E]',
   },
   sold: {
-    tile: 'bg-[#E8E5DE] border-[#CFCAC0] text-[#8E8B83] hover:bg-[#DDD9D0]',
-    selectedTile: 'bg-[#6F6D66] border-[#141816] text-white ring-2 ring-[#141816]/25',
+    tile: 'bg-[#DFDBD2] border-[#CAC4B8] text-[#77736B] hover:bg-[#D5D0C5]',
+    selectedTile:
+      'bg-[#68645C] border-[#141816] text-[#F6F4EF] ring-2 ring-[#141816]/60 ring-offset-1 ring-offset-[#FBF9F5] shadow-md scale-[1.04] z-10',
     badge: 'bg-[#E8E5DE] text-[#6B6861] border-[#CFCAC0]',
-    dot: 'bg-[#9E9B93]',
+    dot: 'bg-[#A6A299]',
   },
 }
 
@@ -38,7 +56,7 @@ export function MasterplanSection({ lang, t, onSelectLotForViewing }: Masterplan
   const [lots, setLots] = useState<Lot[]>([])
   const [source, setSource] = useState<'local' | 'supabase'>('local')
   const [filter, setFilter] = useState<'all' | LotStatus>('all')
-  const [selectedLotId, setSelectedLotId] = useState<string>('AV-08')
+  const [selectedLotId, setSelectedLotId] = useState<string>('AV-19')
 
   useEffect(() => {
     let active = true
@@ -46,9 +64,11 @@ export function MasterplanSection({ lang, t, onSelectLotForViewing }: Masterplan
       if (!active) return
       setLots(res.lots)
       setSource(res.source)
-      const firstAvailable = res.lots.find((l) => l.status === 'available')
-      if (firstAvailable) {
-        setSelectedLotId(firstAvailable.id)
+      const preferred =
+        res.lots.find((l) => l.id === 'AV-19' && l.status === 'available') ??
+        res.lots.find((l) => l.status === 'available')
+      if (preferred) {
+        setSelectedLotId(preferred.id)
       }
     })
     return () => {
@@ -56,34 +76,44 @@ export function MasterplanSection({ lang, t, onSelectLotForViewing }: Masterplan
     }
   }, [])
 
-  const counts = useMemo(() => {
-    return {
+  const counts = useMemo(
+    () => ({
       all: lots.length,
       available: lots.filter((l) => l.status === 'available').length,
       reserved: lots.filter((l) => l.status === 'reserved').length,
       sold: lots.filter((l) => l.status === 'sold').length,
+    }),
+    [lots],
+  )
+
+  const availableLots = useMemo(
+    () => lots.filter((l) => l.status === 'available').sort((a, b) => a.number - b.number),
+    [lots],
+  )
+
+  // Map 21 horizontal columns (positions 1..21) for north & south rows matching the real masterplan
+  const northByPos = useMemo(() => {
+    const map = new Map<number, Lot>()
+    for (const lot of lots) {
+      if (lot.row === 'north') map.set(lot.position, lot)
     }
+    return map
   }, [lots])
 
-  const westLots = useMemo(
-    () => lots.filter((l) => l.row === 'west').sort((a, b) => a.position - b.position),
-    [lots],
-  )
-  const eastTopLots = useMemo(
-    () => lots.filter((l) => l.row === 'east' && l.position <= 10).sort((a, b) => a.position - b.position),
-    [lots],
-  )
-  const eastBottomLots = useMemo(
-    () => lots.filter((l) => l.row === 'east' && l.position > 10).sort((a, b) => a.position - b.position),
-    [lots],
-  )
+  const southByPos = useMemo(() => {
+    const map = new Map<number, Lot>()
+    for (const lot of lots) {
+      if (lot.row === 'south') map.set(lot.position, lot)
+    }
+    return map
+  }, [lots])
 
   const selectedLot = useMemo(
     () => lots.find((l) => l.id === selectedLotId) ?? lots[0] ?? null,
     [lots, selectedLotId],
   )
 
-  const renderLotButton = (lot: Lot) => {
+  const renderLotTile = (lot: Lot) => {
     const isSelected = selectedLot?.id === lot.id
     const isDimmed = filter !== 'all' && lot.status !== filter
     const style = STATUS_STYLE[lot.status]
@@ -95,21 +125,28 @@ export function MasterplanSection({ lang, t, onSelectLotForViewing }: Masterplan
         onClick={() => setSelectedLotId(lot.id)}
         data-track="masterplan_lot_select"
         data-lot-id={lot.id}
-        aria-label={`${t.masterplan.detail.lotPrefix}${lot.number} (${t.masterplan.statuses[lot.status]})`}
-        className={`relative h-10 sm:h-11 rounded-lg border text-xs font-semibold transition-all cursor-pointer flex items-center justify-center ${
+        aria-label={`${t.masterplan.detail.lotPrefix}${lot.number} (${t.masterplan.map.plotShort} ${lot.plotNumber}, ${t.masterplan.statuses[lot.status]})`}
+        className={`relative h-[66px] rounded-md border flex flex-col items-center justify-center px-0.5 transition-all cursor-pointer select-none ${
           isSelected ? style.selectedTile : style.tile
         } ${isDimmed ? 'opacity-25' : 'opacity-100'}`}
       >
-        <span>{lot.number}</span>
+        <span className="text-[11px] font-bold leading-none">№{lot.number}</span>
+        <span
+          className={`text-[9px] leading-none mt-1 ${
+            lot.status === 'available' || isSelected ? 'opacity-80' : 'opacity-70'
+          }`}
+        >
+          {t.masterplan.map.plotShort} {lot.plotNumber}
+        </span>
       </button>
     )
   }
 
   return (
-    <section id="masterplan" className="py-16 sm:py-24 bg-[#ECE8DF]/65 border-y border-[#171A18]/8">
+    <section id="masterplan" className="py-16 sm:py-24 bg-[#ECE8DF]/70 border-y border-[#171A18]/8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 sm:mb-10">
+        {/* Header + Status Filters */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-7">
           <div className="max-w-2xl space-y-3">
             <p className="text-xs tracking-[0.2em] uppercase text-[#8A6D3B] font-semibold">
               {t.masterplan.eyebrow}
@@ -122,7 +159,6 @@ export function MasterplanSection({ lang, t, onSelectLotForViewing }: Masterplan
             </p>
           </div>
 
-          {/* Filter Pills */}
           <div className="flex flex-wrap gap-2">
             {(['all', 'available', 'reserved', 'sold'] as const).map((key) => {
               const active = filter === key
@@ -135,7 +171,7 @@ export function MasterplanSection({ lang, t, onSelectLotForViewing }: Masterplan
                   className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-medium border transition-colors cursor-pointer ${
                     active
                       ? 'bg-[#171A18] text-[#F6F4EF] border-[#171A18]'
-                      : 'bg-white/80 text-[#343835] border-[#171A18]/12 hover:border-[#171A18]/35'
+                      : 'bg-white/85 text-[#343835] border-[#171A18]/12 hover:border-[#171A18]/35'
                   }`}
                 >
                   {key !== 'all' && (
@@ -151,145 +187,243 @@ export function MasterplanSection({ lang, t, onSelectLotForViewing }: Masterplan
           </div>
         </div>
 
-        {/* Main Masterplan + Detail Sidebar */}
-        <div className="grid lg:grid-cols-12 gap-6 items-start">
-          {/* Interactive Plan Board */}
-          <div className="lg:col-span-8 rounded-3xl bg-[#FBF9F5] border border-[#171A18]/10 p-4 sm:p-6 shadow-sm">
-            {/* Top Entry Marker */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-[#171A18]/10">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#1B332A]">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#1B332A] text-[#D5B883]">
-                  <Compass className="w-3.5 h-3.5" />
-                </span>
-                <span>{t.masterplan.map.kpp2}</span>
-              </div>
-              <span className="text-[11px] text-[#6E726E] bg-[#ECE8DF] px-2.5 py-1 rounded-full">
-                {t.masterplan.map.kpp1}
+        {/* Quick-Pick Chips for Available Cottages (instant tap on mobile & desktop) */}
+        {availableLots.length > 0 && (
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-[#1B332A] mr-1">
+              {t.masterplan.map.quickAvailable}
+            </span>
+            {availableLots.map((lot) => {
+              const active = selectedLot?.id === lot.id
+              return (
+                <button
+                  key={lot.id}
+                  type="button"
+                  onClick={() => setSelectedLotId(lot.id)}
+                  data-track="masterplan_quick_lot_select"
+                  data-lot-id={lot.id}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold border transition-all cursor-pointer ${
+                    active
+                      ? 'bg-[#1B332A] text-[#F6F4EF] border-[#C9A96E] shadow-xs'
+                      : 'bg-white text-[#1B332A] border-[#1B332A]/25 hover:bg-[#1B332A]/10'
+                  }`}
+                >
+                  №{lot.number}{' '}
+                  <span className="font-normal opacity-75">
+                    ({t.masterplan.map.plotShort} {lot.plotNumber})
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Full-Width Architectural Masterplan Board matching the real village layout */}
+        <div className="rounded-3xl bg-[#FBF9F5] border border-[#171A18]/10 p-4 sm:p-6 shadow-sm">
+          {/* Board Top Bar with Official Logo */}
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 mb-4 border-b border-[#171A18]/10">
+            <img
+              src={logoBlackHorizontal}
+              alt="Apple Village"
+              className="h-7 sm:h-8 w-auto object-contain opacity-90"
+            />
+            <div className="flex flex-wrap items-center gap-4 text-[11px] text-[#5B605C]">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-xs bg-[#1B332A]" />
+                {t.masterplan.statuses.available} ({counts.available})
               </span>
-            </div>
-
-            {/* Two-Row Architectural Schematic mirroring the real Apple Village plan */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-stretch">
-              {/* West Row: 20 cottages */}
-              <div className="sm:col-span-5 flex flex-col">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#6A6E6B] mb-2.5">
-                  {t.masterplan.map.westRow}
-                </div>
-                <div className="grid grid-cols-4 sm:grid-cols-2 gap-2">
-                  {westLots.map(renderLotButton)}
-                </div>
-              </div>
-
-              {/* Central Avenue */}
-              <div className="sm:col-span-2 flex sm:flex-col items-center justify-center rounded-xl bg-[#EAE6DD] border border-dashed border-[#B7B1A4] py-2.5 px-3 text-center">
-                <span className="text-[11px] font-medium tracking-wider uppercase text-[#66635B] sm:[writing-mode:vertical-rl] sm:rotate-180">
-                  {t.masterplan.map.avenue}
-                </span>
-              </div>
-
-              {/* East Row: 19 cottages + Club Pool Zone in the heart */}
-              <div className="sm:col-span-5 flex flex-col">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#6A6E6B] mb-2.5">
-                  {t.masterplan.map.eastRow}
-                </div>
-                <div className="grid grid-cols-4 sm:grid-cols-2 gap-2">
-                  {eastTopLots.map(renderLotButton)}
-                </div>
-
-                {/* Club Pool & Banya Block */}
-                <div className="my-2.5 rounded-xl bg-[#1B332A] text-[#F6F4EF] p-3 border border-[#C9A96E]/40 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#C9A96E]/20 text-[#D5B883] flex items-center justify-center shrink-0">
-                    <Waves className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold text-[#D5B883] leading-tight">
-                      {t.masterplan.map.clubZone}
-                    </div>
-                    <div className="text-[11px] text-[#E4DFD5]/80 leading-snug mt-0.5">
-                      {t.masterplan.map.clubZoneSub}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-4 sm:grid-cols-2 gap-2">
-                  {eastBottomLots.map(renderLotButton)}
-                </div>
-              </div>
-            </div>
-
-            {/* 700m Park Alley Footer Strip */}
-            <div className="mt-5 rounded-xl bg-[#E6F0EA] border border-[#1B332A]/20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-[#1B332A] font-medium">
-              <span>{t.masterplan.map.alleyLabel}</span>
-              <span className="text-[11px] text-[#4C655B]">3.2 га · ИЖС</span>
-            </div>
-
-            {/* Source Note */}
-            <div className="mt-3 flex items-center gap-1.5 text-[11px] text-[#7A7D79]">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#1B332A]" />
-              <span>
-                {source === 'supabase' ? t.masterplan.sourceLiveNote : t.masterplan.sourceLocalNote}
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-xs bg-[#C9A96E]" />
+                {t.masterplan.statuses.reserved} ({counts.reserved})
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-xs bg-[#DFDBD2] border border-[#CAC4B8]" />
+                {t.masterplan.statuses.sold} ({counts.sold})
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-xs bg-[#265D68]" />
+                {t.masterplan.map.poolSaunas}
               </span>
             </div>
           </div>
 
-          {/* Selected Lot Detail Card */}
-          <div className="lg:col-span-4 rounded-3xl bg-[#141816] text-[#F6F4EF] p-6 sm:p-7 border border-white/10 shadow-xl sticky top-24">
-            {selectedLot ? (
-              <div className="space-y-6">
-                <div className="flex items-start justify-between gap-3 pb-5 border-b border-white/10">
-                  <div>
-                    <div className="text-[11px] tracking-[0.2em] uppercase text-[#C9A96E] font-medium">
-                      {selectedLot.id}
+          {/* Mobile Horizontal Scroll Hint */}
+          <div className="flex lg:hidden items-center gap-1.5 text-[11px] text-[#8A6D3B] mb-3 font-medium">
+            <MoveHorizontal className="w-3.5 h-3.5" />
+            <span>{t.masterplan.map.scrollHint}</span>
+          </div>
+
+          {/* Scrollable Blueprint Canvas */}
+          <div className="overflow-x-auto pb-2 -mx-1 px-1">
+            <div className="min-w-[1060px] rounded-2xl bg-[#EEF1EA] border border-[#1B332A]/12 p-3.5">
+              <div className="flex items-stretch gap-3">
+                {/* LEFT EDGE: Kuldzhinsky Tract Road */}
+                <div className="w-9 shrink-0 rounded-xl bg-[#484C4A] text-[#E8E4DC] flex flex-col items-center justify-between py-4 px-1 relative overflow-hidden">
+                  <div className="w-px flex-1 border-l border-dashed border-white/35 my-1" />
+                  <span className="text-[10px] font-semibold tracking-[0.16em] uppercase whitespace-nowrap [writing-mode:vertical-rl] rotate-180 my-2">
+                    {t.masterplan.map.kuldzhinka}
+                  </span>
+                  <div className="w-px flex-1 border-l border-dashed border-white/35 my-1" />
+                </div>
+
+                {/* ENTRY GROUP: Guest Parking, Guard (KPP), Sales Office, BAKAD */}
+                <div className="w-[124px] shrink-0 flex flex-col justify-between gap-2">
+                  {/* Top: Guard + Inner Guest Parking */}
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <div className="rounded-lg bg-[#E9E1F0] border border-[#8E77A6]/35 p-2 flex flex-col items-center justify-center text-center min-h-[66px]">
+                      <Shield className="w-3.5 h-3.5 text-[#5D4675] mb-1" />
+                      <span className="text-[9px] font-semibold text-[#47335C] leading-tight">
+                        {t.masterplan.map.guard}
+                      </span>
                     </div>
-                    <h3 className="font-display text-2xl sm:text-3xl text-[#F6F4EF] mt-1">
-                      {t.masterplan.detail.lotPrefix}
-                      {selectedLot.number}
-                    </h3>
+                    <div className="rounded-lg bg-[#E4E3DF] border border-[#171A18]/15 p-1.5 flex flex-col items-center justify-center text-center min-h-[66px]">
+                      <Car className="w-3.5 h-3.5 text-[#4E5350] mb-1" />
+                      <span className="text-[8.5px] font-medium text-[#474B48] leading-tight">
+                        {t.masterplan.map.guestParking}
+                      </span>
+                    </div>
                   </div>
+
+                  {/* Middle: Main Guest Parking + Gate */}
+                  <div className="rounded-lg bg-[#E4E3DF] border border-[#171A18]/15 px-2 py-2.5 flex items-center justify-center gap-1.5 text-center">
+                    <Car className="w-3.5 h-3.5 text-[#4E5350] shrink-0" />
+                    <span className="text-[9.5px] font-semibold text-[#3C403D] leading-tight">
+                      {t.masterplan.map.guestParking}
+                    </span>
+                  </div>
+
+                  {/* Bottom: Sales Office + BAKAD direction */}
+                  <div className="space-y-1.5">
+                    <div className="rounded-lg bg-[#5A3E24] text-[#F6F4EF] border border-[#3E2A17] px-2 py-2.5 flex items-center justify-center gap-1.5 text-center">
+                      <Building2 className="w-3.5 h-3.5 text-[#D5B883] shrink-0" />
+                      <span className="text-[10px] font-semibold leading-tight">
+                        {t.masterplan.map.office}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-md bg-[#1B332A]/10 px-2 py-1 text-[9px] font-semibold text-[#1B332A]">
+                      <Compass className="w-3 h-3 shrink-0" />
+                      <span>{t.masterplan.map.bakad}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* MAIN VILLAGE BODY: 21 aligned columns (North Row + Street + South Row + Park Alley) */}
+                <div className="flex-1 flex flex-col gap-2">
+                  {/* TOP ROW (20 cottages: №2..№38 incl. №21 + Slot 21 Guest Parking) */}
+                  <div className="grid grid-cols-21 gap-1">
+                    {Array.from({ length: 20 }, (_, i) => {
+                      const pos = i + 1
+                      const lot = northByPos.get(pos)
+                      return lot ? renderLotTile(lot) : <div key={`n-empty-${pos}`} />
+                    })}
+                    {/* Slot 21: Far-right Guest Parking */}
+                    <div className="h-[66px] rounded-md bg-[#E4E3DF] border border-dashed border-[#9E9B93] flex flex-col items-center justify-center text-center px-0.5">
+                      <Car className="w-3.5 h-3.5 text-[#545855] mb-0.5" />
+                      <span className="text-[7.5px] font-semibold text-[#4F5350] leading-[1.1]">
+                        {t.masterplan.map.guestParking}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* CENTRAL AVENUE ROAD */}
+                  <div className="h-9 rounded-lg bg-[#424644] px-4 flex items-center justify-between relative overflow-hidden">
+                    <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 border-t border-dashed border-white/40" />
+                    <span className="relative z-10 bg-[#424644] px-2 text-[10px] font-medium tracking-wider uppercase text-[#E4DFD5]/85">
+                      {t.masterplan.map.street}
+                    </span>
+                    <span className="relative z-10 bg-[#424644] px-2 text-[10px] text-[#D5B883]">
+                      КПП →
+                    </span>
+                  </div>
+
+                  {/* BOTTOM ROW (№1..№19, [Бассейн/сауны], [Спорт/дет. площадка], №23..№39) */}
+                  <div className="grid grid-cols-21 gap-1">
+                    {Array.from({ length: 21 }, (_, i) => {
+                      const pos = i + 1
+                      if (pos === 11) {
+                        return (
+                          <div
+                            key="infra-pool"
+                            title={t.masterplan.map.poolSaunas}
+                            className="h-[66px] rounded-md bg-[#1F5864] border border-[#143F49] text-[#F6F4EF] flex flex-col items-center justify-center text-center px-0.5"
+                          >
+                            <Waves className="w-3.5 h-3.5 text-[#8BE0F0] mb-0.5 shrink-0" />
+                            <span className="text-[7.5px] font-semibold leading-[1.1]">
+                              {t.masterplan.map.poolSaunas}
+                            </span>
+                          </div>
+                        )
+                      }
+                      if (pos === 12) {
+                        return (
+                          <div
+                            key="infra-sport"
+                            title={t.masterplan.map.sportPlayground}
+                            className="h-[66px] rounded-md bg-[#E6D6B8] border border-[#B8955A]/60 text-[#3F2E14] flex flex-col items-center justify-center text-center px-0.5"
+                          >
+                            <Dumbbell className="w-3.5 h-3.5 text-[#8A6D3B] mb-0.5 shrink-0" />
+                            <span className="text-[7.5px] font-semibold leading-[1.1]">
+                              {t.masterplan.map.sportPlayground}
+                            </span>
+                          </div>
+                        )
+                      }
+                      const lot = southByPos.get(pos)
+                      return lot ? renderLotTile(lot) : <div key={`s-empty-${pos}`} />
+                    })}
+                  </div>
+
+                  {/* SOUTHERN PARK-ALLEY STRIP (700 m) */}
+                  <div className="rounded-lg bg-[#D7E4D8] border border-[#1B332A]/20 px-4 py-2 flex items-center justify-between text-[11px] font-semibold text-[#1B332A]">
+                    <span className="inline-flex items-center gap-2">
+                      <Trees className="w-4 h-4 text-[#26473B]" />
+                      <span>{t.masterplan.map.parkAlley}</span>
+                    </span>
+                    <span className="text-[10px] font-medium text-[#3D594D]">
+                      3.2 га · 39 коттеджей · ИЖС
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Source Note */}
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-[#7A7D79]">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#1B332A]" />
+            <span>
+              {source === 'supabase' ? t.masterplan.sourceLiveNote : t.masterplan.sourceLocalNote}
+            </span>
+          </div>
+        </div>
+
+        {/* Selected Lot Inspector Bar */}
+        <div className="mt-5 rounded-3xl bg-[#141816] text-[#F6F4EF] p-5 sm:p-7 border border-white/10 shadow-xl">
+          {selectedLot ? (
+            <div className="grid lg:grid-cols-12 gap-6 items-center">
+              {/* Lot Identity */}
+              <div className="lg:col-span-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] tracking-[0.2em] uppercase text-[#C9A96E] font-medium">
+                    {selectedLot.id} · {t.masterplan.map.plotShort} {selectedLot.plotNumber}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h3 className="font-display text-2xl sm:text-3xl text-[#F6F4EF]">
+                    {t.masterplan.detail.lotPrefix}
+                    {selectedLot.number}
+                  </h3>
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${
                       STATUS_STYLE[selectedLot.status].badge
                     }`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${STATUS_STYLE[selectedLot.status].dot}`} />
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${STATUS_STYLE[selectedLot.status].dot}`}
+                    />
                     {t.masterplan.statuses[selectedLot.status]}
                   </span>
                 </div>
-
-                {/* Specs Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-white/[0.04] border border-white/8 p-3.5">
-                    <div className="text-[11px] text-[#B7B5AE]">{t.masterplan.detail.totalArea}</div>
-                    <div className="font-display text-xl text-[#F6F4EF] mt-0.5">
-                      {selectedLot.houseAreaTotal} м²
-                    </div>
-                    <div className="text-[11px] text-[#C9A96E] mt-0.5">
-                      {t.masterplan.detail.livingArea}: {selectedLot.houseAreaLiving} м²
-                    </div>
-                  </div>
-                  <div className="rounded-xl bg-white/[0.04] border border-white/8 p-3.5">
-                    <div className="text-[11px] text-[#B7B5AE]">{t.masterplan.detail.terrace}</div>
-                    <div className="font-display text-xl text-[#F6F4EF] mt-0.5">
-                      +{selectedLot.terraceArea} м²
-                    </div>
-                    <div className="text-[11px] text-[#B7B5AE] mt-0.5">
-                      {t.masterplan.detail.landArea}: {selectedLot.landAreaSotok} сот. ({selectedLot.purpose})
-                    </div>
-                  </div>
-                </div>
-
-                {/* Location Highlight */}
-                <div className="flex items-start gap-2.5 rounded-xl bg-[#1B332A]/60 border border-[#C9A96E]/25 p-3.5 text-xs text-[#E4DFD5]">
-                  <MapPin className="w-4 h-4 text-[#D5B883] shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-[#D5B883] font-medium mb-0.5">
-                      {t.masterplan.detail.locationFeature}
-                    </div>
-                    <div>{t.masterplan.features[selectedLot.featureKey]}</div>
-                  </div>
-                </div>
-
-                {/* Contextual Status Message */}
                 <p className="text-xs text-[#B7B5AE] leading-relaxed">
                   {selectedLot.status === 'available'
                     ? t.masterplan.detail.paymentNote
@@ -297,40 +431,78 @@ export function MasterplanSection({ lang, t, onSelectLotForViewing }: Masterplan
                       ? t.masterplan.detail.reservedNote
                       : t.masterplan.detail.soldNote}
                 </p>
+              </div>
 
-                {/* Actions with data-lot-id */}
-                <div className="space-y-2.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => onSelectLotForViewing(selectedLot)}
-                    data-track="lot_book_viewing"
-                    data-lot-id={selectedLot.id}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#C9A96E] hover:bg-[#D8BB84] text-[#141816] font-semibold text-sm py-3.5 px-5 transition-colors cursor-pointer"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    <span>{t.masterplan.detail.ctaBookLot}</span>
-                  </button>
+              {/* Key Specs */}
+              <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="rounded-xl bg-white/[0.04] border border-white/8 p-3.5">
+                  <div className="text-[11px] text-[#B7B5AE]">{t.masterplan.detail.totalArea}</div>
+                  <div className="font-display text-xl text-[#F6F4EF] mt-0.5">
+                    {selectedLot.houseAreaTotal} м²
+                  </div>
+                  <div className="text-[11px] text-[#C9A96E] mt-0.5">
+                    {t.masterplan.detail.livingArea}: {selectedLot.houseAreaLiving} м²
+                  </div>
+                </div>
 
-                  <a
-                    href={buildLotWhatsAppUrl(selectedLot.number, selectedLot.id, lang)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-track="whatsapp_lot_inquiry"
-                    data-lot-id={selectedLot.id}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-white/20 hover:border-[#C9A96E]/60 hover:bg-white/5 text-[#F6F4EF] font-medium text-sm py-3 px-5 transition-colors"
-                  >
-                    <MessageCircle className="w-4 h-4 text-[#78C994]" />
-                    <span>{t.masterplan.detail.ctaWhatsAppLot}</span>
-                  </a>
+                <div className="rounded-xl bg-white/[0.04] border border-white/8 p-3.5">
+                  <div className="text-[11px] text-[#B7B5AE]">{t.masterplan.detail.terrace}</div>
+                  <div className="font-display text-xl text-[#F6F4EF] mt-0.5">
+                    +{selectedLot.terraceArea} м²
+                  </div>
+                  <div className="text-[11px] text-[#B7B5AE] mt-0.5">
+                    {selectedLot.landAreaSotok} сот. · {selectedLot.purpose}
+                  </div>
+                </div>
+
+                <div className="col-span-2 sm:col-span-1 rounded-xl bg-[#1B332A]/65 border border-[#C9A96E]/25 p-3.5 flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 text-[11px] text-[#D5B883] font-medium">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    <span>{t.masterplan.detail.locationFeature}</span>
+                  </div>
+                  <div className="text-xs text-[#F6F4EF] leading-snug mt-1">
+                    {t.masterplan.features[selectedLot.featureKey]}
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div className="py-12 text-center text-sm text-[#B7B5AE] flex flex-col items-center gap-3">
-                <Home className="w-6 h-6 text-[#C9A96E]" />
-                <span>{t.masterplan.detail.selectPrompt}</span>
+
+              {/* Actions */}
+              <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => onSelectLotForViewing(selectedLot)}
+                  data-track="lot_book_viewing"
+                  data-lot-id={selectedLot.id}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-[#C9A96E] hover:bg-[#D8BB84] text-[#141816] font-semibold text-sm py-3.5 px-5 transition-colors cursor-pointer"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>{t.masterplan.detail.ctaBookLot}</span>
+                </button>
+
+                <a
+                  href={buildLotWhatsAppUrl(
+                    selectedLot.number,
+                    selectedLot.id,
+                    lang,
+                    selectedLot.plotNumber,
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-track="whatsapp_lot_inquiry"
+                  data-lot-id={selectedLot.id}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-full border border-white/20 hover:border-[#C9A96E]/60 hover:bg-white/5 text-[#F6F4EF] font-medium text-sm py-3 px-5 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4 text-[#78C994]" />
+                  <span>{t.masterplan.detail.ctaWhatsAppLot}</span>
+                </a>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="py-6 text-center text-sm text-[#B7B5AE] flex items-center justify-center gap-2">
+              <Home className="w-5 h-5 text-[#C9A96E]" />
+              <span>{t.masterplan.detail.selectPrompt}</span>
+            </div>
+          )}
         </div>
       </div>
     </section>

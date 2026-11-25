@@ -215,7 +215,7 @@ export function LocationAndFormSection({
                 <div>
                   <span className="text-[#575C58]">{t.location.selectedLotLabel}: </span>
                   <span className="font-semibold text-[#1B332A]">
-                    №{selectedLot.number} ({selectedLot.id}) · 169 м² · 6 сот.
+                    №{selectedLot.number} (уч. {selectedLot.plotNumber} · {selectedLot.id}) · 169 м² · 6 сот.
                   </span>
                 </div>
                 <button

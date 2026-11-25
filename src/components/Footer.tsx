@@ -8,6 +8,7 @@ import {
   buildWhatsAppUrl,
   type Lang,
 } from '../utils/whatsapp'
+import logoWhiteHorizontal from '../assets/logos/av-logo-horizontal-white.svg'
 
 interface FooterProps {
   lang: Lang
@@ -19,14 +20,16 @@ export function Footer({ lang, t }: FooterProps) {
     <footer className="bg-[#111513] text-[#E4DFD5] border-t border-white/10 pt-12 pb-24 sm:pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-12 gap-8 pb-10 border-b border-white/10">
-          <div className="md:col-span-6 space-y-3">
-            <div>
-              <div className="font-display text-xl tracking-[0.14em] text-[#F6F4EF]">
-                APPLE VILLAGE
-              </div>
-              <div className="text-[11px] tracking-[0.22em] uppercase text-[#C9A96E] mt-1">
+          <div className="md:col-span-6 space-y-3.5">
+            <div className="flex items-center gap-3.5">
+              <img
+                src={logoWhiteHorizontal}
+                alt="Apple Village"
+                className="h-10 sm:h-11 w-auto object-contain"
+              />
+              <span className="pl-3.5 border-l border-white/15 text-[10px] tracking-[0.22em] uppercase text-[#C9A96E]">
                 QZNA Development
-              </div>
+              </span>
             </div>
             <p className="text-xs sm:text-sm text-[#A8A69F] max-w-md leading-relaxed">
               {t.footer.tagline}
